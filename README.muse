@@ -1,0 +1,15 @@
+#title README for project
+#author author (author@nublabs.org)
+#date 100108
+#desc Short description of the project
+
+* What is this project?
+
+* File index
+ - project
+   - CONVENTIONS.muse
+   - READEM.muse
+   - docs
+   - hardware
+   - software
+   - misc

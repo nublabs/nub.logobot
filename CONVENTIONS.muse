@@ -1,0 +1,35 @@
+#title Structuring nublabs projects
+#author alec resnick (alec@nublabs.org)
+#date 092808
+#desc Overview of the structure of nublabs project documentation
+
+
+* What is this?
+This is a generic README file documenting the project file structure for nublabs projects.  See [[http://nublabs.com/transparency][the nublabs transparency site]] for details.
+
+
+* File structure
+Each project at nublabs gets a separate git repository at github.com.  At docs.nublabs.com, you can find an index of current projects and details on how to access them.  Projects also follow a standardized file structure, as detailed [[http://nublabs.com/transparency/open-source][on our site.]]
+
+
+* Overview
+At the top level of every project, there are four folders: docs, hardware, software, and misc.
+
+ - docs :: contains all press and media generated around the project. Meeting notes, proposals, ads, etc.  This folder also contains any and all user documentation for the project.  If a group of files is documenting a certain piece of hardware, the containing folder should be appropriately named (e.g. logobot-chassis and logobot-chassis-docs).   
+ - hardware :: contains all files associated with the hardware development of the project.  Separate components should be kept in separate folders readably named.
+ - software :: contains all source code and software associated with a project, including any configuration files deployed.  Separate scripts or programs have separate folders so that their documentation folders can be appropriately named (in docs)
+ - misc :: contains, well, everything else.  Subfolders should still be used for coherent bodies of files (for instance, a literature review).
+
+There is also this file, CONVENTIONS.muse, and README.muse, a readme for the relevant project.  In particular, take note of the Best Practices section with regard to keeping the README updated.
+
+
+* Best practices & conventions
+ - The README should contain, at a minimum:
+   1. A description of the purpose of the project
+   2. A reference for whom to contact or where to go for help
+   3. An updated file index in [[http://orgmode.org/manual/Headlines.html#Headlines][muse-mode outline format]]
+ - Please keep the README updated, particularly the file index section explaining each file.
+ - Each time you commit a new file (especially a binary file which cannot be internally commented) to the repository, please add a comment denoting what the file is.
+ - Prefer dashes to underscores for separating three or more words (e.g. three-or-more), concatenate words (e.g. twoWords) if there are only two.
+ - Do not prefix filenames with the project name: use containing folders to give context
+ - Take the five minutes necessary to learn [[http://mwolson.org/static/doc/muse.html#Top][muse-mode markup]] and use it in taking notes and writing documentation.  This allows you to generate many forms of documentation from a single file.

@@ -1,0 +1,158 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{latexsym}
+\usepackage[pdftex]{graphicx}
+\usepackage{fullpage}
+
+\newcommand{\degree}{\ensuremath{^\circ}}
+
+\title{Designing and building Logobot}
+\author{}
+\date{Last edited \today}
+
+\begin{document}
+
+\maketitle
+\begin{abstract}
+Logobot is a small, affordable robot which understands the programming language Logo.  Logo uses simple commands like \texttt{forward}, \texttt{right}, \texttt{left}, \texttt{pen up}, \texttt{pen down}, and so on.\footnote{\texttt{http://en.wikipedia.org/wiki/Logo\_programming\_language}} to control a virtual or physical sprite.  Logo aims to make programming physically intuitive by capitalizing on the way we already think about motion to introduce advanced programming, mathematical, and epistemological concepts.  The pedagogical versatility and value of the language was explored in Seymour Papert's \textit{Mindstorms}.  
+
+Logobot's size and cost will make it a candidate for exploring swarm computing and emergent phenomena in a physical environment.  Currently, swarm computing is prohibitively expensive and relatively unapproachable.  Environments like StarLogo\footnote{\texttt{http://education.mit.edu/starlogo/}} have made it possible (though not particularly easy) for students to play with complex, emergent systems.  Logobot can bring physicality to the process.
+
+Logobot will interface with the Scratch programming environment\footnote{\texttt{http://scratch.mit.edu}}, which means there will be a tremendous market primed for using the tool.  Through the plugin we write, people familiar with Scratch will be able to write programs for Logobot in Scratch and run them.
+
+We have not yet confirmed a sponsor school or classroom, but we will do so in the coming week.
+\end{abstract}
+
+\section{What are we doing?}
+We are designing a small, affordable robot that can easily opearate on a desktop and obey Logo commands which are either loaded onto Logobot or run wireless from Scratch.  We will be developing a plugin for Scratch that allows us to add commands for Logobot's operation.  We will also be creating documentation and support materials for teachers and students interested in constructing or incorporating Logobot into their educational programs.  We will 
+
+\section{Who are we working for?}
+TO BE DETERMINED
+
+\section{What are their needs?}
+TO BE DETERMINED
+
+\section{How does it help us?}
+Logobot is a marketable product and kit that targets a well-established sector: educational robotics.  It has the potential to be an extensible platform for robotics to which we can add options of sensors and software at a later date.  It is a natural, engaging choice for a product around which we could grow a community of practice that modifies, extends, and evangelizes our product and name.
+
+There are many contexts in which Logobot is a prepackaged educational solution.  Logobot would provide us with an easy option to create a program that focuses on any of the following, on-the-fly:
+\begin{itemize}
+\item Constructing Logobot from scratch is a great context for teaching basic electronics
+\item Logobot as a Scratch addon opens up the possibility of Scratch workshops with MIT and the Lifelong Kindergarten group\footnote{\texttt{http://llk.mit.edu}}
+\item Teaching programming to students in the classic \textit{Mindstorms} style
+\item Robot competitions
+\item Teaching math and geometry at any grade or school level with Logo
+\item Teaching college students differential geometry (see Abelson and di Sessa's \textit{Turtle Geometry}\footnote{\texttt{http://www.amazon.com/Turtle-Geometry-Mathematics-Artificial-Intelligence/dp/0262510375/ref=pd\_bbs\_sr\_1?ie=UTF8\&s=books\&qid=1217924320\&sr=8-1}}
+\item Community workshops and demos at venues like the Museum of Science
+\end{itemize}
+ Because the educational angle to robotics is so well-established, there are many existing channels into which we could plug Logobot to advertise and expand the NUBlabs name.
+
+Furthermore, if we can document the unique educational opportunities Logobot offers, we will position ourselves as a leader in the field by capitalizing on existing connections to educational media outlets.
+
+\section{When does this need to be done?}
+December 1st 2008: we want the product and kit ready for the holidays and for schools' spring terms.
+
+\section{What skills are needed to make this work?}
+\begin{itemize}
+\item \textbf{Mechanical engineering}
+  \begin{quote}
+    Logobot needs to be durable, robust, affordable\footnote{Perhaps this means that it is designed with as few parts as possible.}, and buildable.
+  \end{quote}
+\item \textbf{Electrical engineering}
+  \begin{quote}
+    Logobot's electronics need to be designed with cost and the kit-builder in mind.  They should be designed as an extensible platform, not a typical, immutable, embedded device.  Logobot needs to be able to navigate arbitray surfaces, translate high level language into movement commands, and receive commands in real time.
+  \end{quote}
+\item \textbf{Software programming}
+  \begin{quote}
+    A Scratch plugin needs to be written to add the necessary functionality to Scratch to allow for the programming of Logobot from Scratch.  A web site needs to be set up to support the community that will grow up around the product, as well as a way to share and document projects.\footnote{This starts to touch on some broader applications that need to be made to support DIY activity.  That means that this piece of software should not be on the critical path for release.}
+  \end{quote}
+\item \textbf{Clear writing and documentation skill}
+  \begin{quote}
+    This product has been created before.  What will distinguish NUBlabs' implementation is our integration with an existing product and its community (i.e. Scratch), and the quality and extent of our support materials (not to mention the degree to which we advertise them).
+  \end{quote}
+\end{itemize}
+
+\section{What materials are needed?}
+\begin{itemize}
+\item PCB
+\item Electronic components
+\item Chassis
+\item Motors
+\item Wheels and other moving parts
+\item Sensors
+\item Memory
+\item Batteries
+\item MORE?
+\end{itemize}
+
+\section{What will be the material cost of development?}
+\begin{itemize}
+\item
+\end{itemize}
+
+
+\section{How much will a unit cost?}
+\begin{itemize}
+\item PCB (\$)
+\item Electronic components (\$)
+\item Chassis (\$)
+\item Motors (\$)
+\item Wheels and other moving parts (\$)
+\item Sensors (\$)
+\item Memory (\$)
+\item Batteries (\$)
+\item MORE?
+\end{itemize}
+
+\section{How long will it take?}
+\begin{itemize}
+\item Design and testing of prototype board ( hours)
+\item Mechanical design of mechanisms and structure ( hours)
+\item Field testing ( hours)
+\item Design and testing of final board ( hours)
+\item Sourcing electronic components ( hours)
+\item Sourcing mechanical components ( hours)
+\item Documentation of building process ( hours)
+\item Documentation of usage ( hours)
+\item Documentation of use cases and lessons ( hours)
+\end{itemize}
+
+\section{How do you plan to make this?}
+\begin{enumerate}
+\item Design and build the prototype electronics (DATE)
+\item Write the Scratch plugin (DATE)
+\item Design and build the initial prototype (DATE)
+\item Perform tests and revise (DATE)
+\item Implement revision and do field testing with students and teachers, gathering feedback (DATE)
+\item Implement second revision (DATE)
+\item Design and package kit (DATE)
+\item Complete product and kit documentation (DATE)
+\item Deploy in sponsor school and begin afterschool program/other school outreach and online distribution (DATE)
+\end{enumerate}
+
+\section{What documentation needs to be written?}
+\subsection{Product documentation}
+\begin{itemize}
+\item How do the electronics work?
+\item How do the mechanisms work?
+\item Why were the primary design decisions made?
+\item Likely troubleshooting and frequently asked questions
+\item Five introductory class activities or lessons
+\item Support materials for software usage
+\item Introductory videos
+\end{itemize}
+
+\subsection{Kit documentation}
+\begin{itemize}
+\item How do the electronics work?
+\item How do the mechanisms work?
+\item Why were the primary design decisions made?
+\item Likely troubleshooting and frequently asked questions
+\item Five introductory class activities or lessons
+\item Support materials for software usage
+\item Introductory videos
+\item Walkthrough of build process
+\end{itemize}
+
+\end{document}
