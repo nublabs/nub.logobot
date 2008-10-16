@@ -7,7 +7,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG) 
 # Available levels: NOSET, DEBUG, INFO, WARN, ERROR, CRITITCAL
 
-lengthScale = 1 #100 # number of clicks in one inch, should be 400
+lengthScale = 100 # number of clicks in one inch, should be 400
 rotationScale = 1 #25.6 # number of clicks in one degree, should be 29
 
 import os, sys, dircache
