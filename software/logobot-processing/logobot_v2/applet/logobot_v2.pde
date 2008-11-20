@@ -1,8 +1,8 @@
 import processing.serial.*;
 
-byte linear_parameter1=10;
+byte linear_parameter1=2;
 byte linear_parameter2=0;
-byte rotary_parameter1=46;
+byte rotary_parameter1=1;
 byte rotary_parameter2=0;
 boolean pen = true;
 int del=0;
@@ -32,7 +32,6 @@ byte LISTENING =22;
 byte GET_STATUS=27;
 byte PEN_UP=28;
 byte PEN_DOWN=29;
-byte STOP=30;
 
 Serial myPort;
 
@@ -95,8 +94,6 @@ void pen_down()
 
 void send_command(byte command, byte highByte, byte lowByte)
 {
-  if(command!=STOP)
-  {
     byte checksum=(byte)(((int)command+(int)highByte+(int)lowByte)%255);
     myPort.write(MSG_START);
     delay(del);
@@ -109,17 +106,6 @@ void send_command(byte command, byte highByte, byte lowByte)
     myPort.write(checksum);
     delay(del);
     myPort.write(MSG_END);
-  }
-  else
-  {
-    myPort.write(MSG_START);
-    delay(del);
-    myPort.write(command);
-    delay(del);
-    myPort.write(command); //checksum
-    delay(del);
-    myPort.write(MSG_END);
-  }
     
 }
 
@@ -166,8 +152,6 @@ void keyPressed()
       pen_up();
     if(key=='d')
       pen_down();
-    if(key==' ')
-      send_command(STOP,(byte)0,(byte)0);
 //    if(key==' ')
  //     send_stop();
 }

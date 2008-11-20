@@ -1,8 +1,8 @@
-import processing.serial.*;
+import processing.core.*; import processing.serial.*; import java.applet.*; import java.awt.*; import java.awt.image.*; import java.awt.event.*; import java.io.*; import java.net.*; import java.text.*; import java.util.*; import java.util.zip.*; import javax.sound.midi.*; import javax.sound.midi.spi.*; import javax.sound.sampled.*; import javax.sound.sampled.spi.*; import java.util.regex.*; import javax.xml.parsers.*; import javax.xml.transform.*; import javax.xml.transform.dom.*; import javax.xml.transform.sax.*; import javax.xml.transform.stream.*; import org.xml.sax.*; import org.xml.sax.ext.*; import org.xml.sax.helpers.*; public class logobot_v2 extends PApplet {
 
-byte linear_parameter1=10;
+byte linear_parameter1=2;
 byte linear_parameter2=0;
-byte rotary_parameter1=46;
+byte rotary_parameter1=1;
 byte rotary_parameter2=0;
 boolean pen = true;
 int del=0;
@@ -32,11 +32,10 @@ byte LISTENING =22;
 byte GET_STATUS=27;
 byte PEN_UP=28;
 byte PEN_DOWN=29;
-byte STOP=30;
 
 Serial myPort;
 
-void setup()
+public void setup()
 {
   size(200,200);
     println(Serial.list());
@@ -44,14 +43,14 @@ void setup()
   
 }
 
-void draw()
+public void draw()
 {
    background(0);
    while(myPort.available()>0)
      print((char)myPort.read());
    
 }
-void check_data()
+public void check_data()
 {
 /*     while(myPort.available()>0)
     {
@@ -66,7 +65,7 @@ void check_data()
       print(a);
     }
 }
-void send_query(byte query)
+public void send_query(byte query)
 {
   myPort.write(MSG_START);
   myPort.write(query);
@@ -74,7 +73,7 @@ void send_query(byte query)
   myPort.write(MSG_END); 
 }
 
-void pen_up()
+public void pen_up()
 {
   myPort.write(MSG_START);
   myPort.write(PEN_UP);
@@ -82,7 +81,7 @@ void pen_up()
   myPort.write(MSG_END); 
 }
 
-void pen_down()
+public void pen_down()
 {
   myPort.write(MSG_START);
     delay(del);
@@ -93,10 +92,8 @@ void pen_down()
   myPort.write(MSG_END); 
 }
 
-void send_command(byte command, byte highByte, byte lowByte)
+public void send_command(byte command, byte highByte, byte lowByte)
 {
-  if(command!=STOP)
-  {
     byte checksum=(byte)(((int)command+(int)highByte+(int)lowByte)%255);
     myPort.write(MSG_START);
     delay(del);
@@ -109,21 +106,10 @@ void send_command(byte command, byte highByte, byte lowByte)
     myPort.write(checksum);
     delay(del);
     myPort.write(MSG_END);
-  }
-  else
-  {
-    myPort.write(MSG_START);
-    delay(del);
-    myPort.write(command);
-    delay(del);
-    myPort.write(command); //checksum
-    delay(del);
-    myPort.write(MSG_END);
-  }
     
 }
 
-void keyPressed()
+public void keyPressed()
 {
     if(keyCode==UP)
       send_command(FORWARD, linear_parameter1, linear_parameter2);
@@ -166,9 +152,9 @@ void keyPressed()
       pen_up();
     if(key=='d')
       pen_down();
-    if(key==' ')
-      send_command(STOP,(byte)0,(byte)0);
 //    if(key==' ')
  //     send_stop();
 }
     
+
+  static public void main(String args[]) {     PApplet.main(new String[] { "logobot_v2" });  }}
