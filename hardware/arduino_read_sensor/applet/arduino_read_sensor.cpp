@@ -18,12 +18,13 @@ ADNS_SCK         PB2    pin10
 */
 
 #include "adns_2620.h"
-#include "comm.h"  
+#include "comm.h"
 #include "dynamics.h"
 #include <avr/wdt.h>  //watchdog timer .h file
 
 #include "WProgram.h"
 void setup();
+void changeChannel();
 void loop();
 void error(char* message);
 boolean isValidCommand(byte a);
@@ -84,8 +85,20 @@ void setup()
   pinMode(6,OUTPUT);
   state=WAITING;
   Serial.begin(19200);
+  changeChannel();
 }
 
+void changeChannel()
+{
+  Serial.print("+++");
+  int i,j;
+  for(i=0;i<1000;i++)
+    for(j=0;j<1000;j++)
+      {}
+  Serial.println("ATCH0x0C");
+  Serial.println("ATWR");
+  Serial.println("ATCN");
+}
 
 void loop(){
   update();

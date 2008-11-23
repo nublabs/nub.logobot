@@ -68,7 +68,7 @@ void setup()
   pinMode(6,OUTPUT);
   state=WAITING;
   Serial.begin(19200);
-//  changeChannel();
+  changeChannel();
 }
 
 void changeChannel()
