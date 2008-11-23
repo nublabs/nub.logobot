@@ -1,13 +1,19 @@
+#include "WProgram.h"
 //nublabs
+void setup();
+void draw();
+void check_data();
+void send_query(byte query);
+void pen_up();
+void pen_down();
+void send_command(byte command, byte highByte, byte lowByte);
+void keyPressed();
 import processing.serial.*;
 
 byte linear_parameter1=10;
 byte linear_parameter2=0;
-
-// 33 clicks is one degree-ish.
-// rotary contant = p1 * 256 + p2 
-byte rotary_parameter1=0;
-byte rotary_parameter2=33;
+byte rotary_parameter1=46;
+byte rotary_parameter2=0;
 boolean pen = true;
 int del=0;
 
@@ -44,7 +50,7 @@ void setup()
 {
   size(200,200);
     println(Serial.list());
-  myPort = new Serial(this, Serial.list()[2], 19200);
+  myPort = new Serial(this, Serial.list()[0], 19200);
   
 }
 
@@ -176,3 +182,16 @@ void keyPressed()
  //     send_stop();
 }
     
+
+int main(void)
+{
+	init();
+
+	setup();
+    
+	for (;;)
+		loop();
+        
+	return 0;
+}
+

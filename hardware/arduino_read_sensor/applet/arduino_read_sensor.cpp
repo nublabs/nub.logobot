@@ -1,3 +1,8 @@
+#include "WProgram.h"
+// this program does something, but noone knows what it does nor what it's supposed to do because it's not commented/documented yet. 
+
+
+
 /*logobot pins
 data led         PC0    pin14
 status led       PC1    pin15
@@ -17,13 +22,15 @@ ADNS_SDIO        PB1    pin9
 ADNS_SCK         PB2    pin10
 */
 
-#include "adns_2620.h"
-#include "comm.h"
-#include "dynamics.h"
-#include <avr/wdt.h>  //watchdog timer .h file
+// the following .h files contain libraries that might be useful or something
+  #include "adns_2620.h"
+  #include "comm.h"
+  #include "dynamics.h"
+  #include <avr/wdt.h>  //watchdog timer .h file
 
-#include "WProgram.h"
-void setup();
+
+
+  void setup();
 void changeChannel();
 void loop();
 void error(char* message);
@@ -40,30 +47,43 @@ void update();
 void ADNS_write(unsigned char address, unsigned char data);
 unsigned char ADNS_read(unsigned char address);
 byte state, command, parameter1,parameter2,checksum;
-int parameter;
-int rotation;
-int translation;
-int translation_error, old_translation_error, translation_error_derivative;
-int rotation_error, old_rotation_error, rotation_error_derivative;
-int translation_target=0;
-int rotation_target=0;
-int leftMotorSpeed, rightMotorSpeed;
-int maxSpeed=100;
-float translation_p, translation_d;
-float rotation_p, rotation_d;
-#define del 1
-#define SDIO 1
-#define SCK 2
-#define BLANK_B 249
-#define BLANK_D 0x87
-#define BLANK_SERVO 251
-#define SERVO 2
 
-#define UP 700
-#define DOWN 780
+// defining variable names to be used in the ensuing control loops
+  int parameter;
+  int rotation;
+  int translation;
+  int translation_error, old_translation_error, translation_error_derivative;
+  int rotation_error, old_rotation_error, rotation_error_derivative;
 
-#define ADNS_OUT (1<<SCK) | (1<<SDIO)
-#define ADNS_IN (1<<SCK)
+  int translation_target=0;
+  int rotation_target=0;
+  int leftMotorSpeed, rightMotorSpeed;
+  
+  // hrmm. how max can it get??
+  int maxSpeed=100;
+  float translation_p, translation_d;
+  float rotation_p, rotation_d;
+  
+  
+  // adding a variable to split up how often the debugger runs
+  int dumb_count;
+  int dumb_count_threshold;
+
+
+
+  #define del 1
+  #define SDIO 1
+  #define SCK 2
+  #define BLANK_B 249
+  #define BLANK_D 0x87
+  #define BLANK_SERVO 251
+  #define SERVO 2
+
+  #define UP 700
+  #define DOWN 700
+
+  #define ADNS_OUT (1<<SCK) | (1<<SDIO)
+  #define ADNS_IN (1<<SCK)
 
 
 void ADNS_write(unsigned char address, unsigned char data);
@@ -72,20 +92,35 @@ void update();
 
 void setup()
 {
-  translation_p=.2;
-  translation_d=.3;
-  rotation_p=.3;
-  rotation_d=.3;
-  old_translation_error=translation_target-translation;
-  old_rotation_error=rotation_target-rotation;
-  pinMode(2,OUTPUT);
-  pinMode(3,OUTPUT);
-  pinMode(4,OUTPUT);
-  pinMode(5,OUTPUT);
-  pinMode(6,OUTPUT);
-  state=WAITING;
-  Serial.begin(19200);
-  changeChannel();
+
+  // PD control loop gains (constants)
+    translation_p= 0.2;
+    translation_d= 0;
+    rotation_p   = 0.8;
+    rotation_d   = 0;
+  
+  // discretized control loop arithmetic 
+    old_translation_error=translation_target-translation;
+    old_rotation_error=rotation_target-rotation;
+  
+  // arduino pin I/O stuff
+    pinMode(2,OUTPUT);
+    pinMode(3,OUTPUT);
+    pinMode(4,OUTPUT);
+    pinMode(5,OUTPUT);
+    pinMode(6,OUTPUT);
+  
+  // initial state machine setting
+    state=WAITING;
+  
+  // serial port start! 
+    Serial.begin(19200);
+    
+    dumb_count = 0;
+    dumb_count_threshold = 20;
+
+
+//  changeChannel();
 }
 
 void changeChannel()
@@ -101,6 +136,8 @@ void changeChannel()
 }
 
 void loop(){
+  
+  // update reads new values of the X and Y translation of the mouse sensor, leading to updates of the various "___error" values
   update();
   
   //translation PD loop
@@ -118,8 +155,14 @@ void loop(){
   old_rotation_error=rotation_error;
 
   //  motorSpeed=map(abs(abs(error)-margin), 0,abs(target-translation),0,maxSpeed);  //proportional control;
-    
- // printStatus();  //uncomment this line to send debug statements
+  
+  dumb_count = dumb_count + 1;
+  if (dumb_count == dumb_count_threshold)
+  {  
+    printStatus();  //uncomment this line to send debug statements
+    dumb_count = 0;
+  }
+
 /*
 
   if(translation<target-margin)
@@ -133,67 +176,72 @@ void loop(){
   
   
   //here I'm checking to see if we're getting any packets, and interpreting them as we go
- if(Serial.available()>0)
- {
-   byte data=Serial.read();
-   switch(state)
+   if(Serial.available()>0)
    {
-     case(WAITING):
-       if(data==MSG_START)
-         state=COMMAND;
-        else
-         error("not a message start byte");
-        break;
-     case(COMMAND):
-        if(isValidCommand(data))
-        {
-          command=data;
-          if(isShortPacket(command))
-            state=LISTENING_FOR_A_CHECKSUM;
+     byte data=Serial.read();
+     switch(state)
+     {
+       case(WAITING):
+         if(data==MSG_START)
+           state=COMMAND;
           else
-            state=PARAMETER1;            
-        }
-        else
-        {
-          error("not a valid command");
-          state=WAITING;
-        } 
+           error("not a message start byte");
+          break;
+       case(COMMAND):
+          if(isValidCommand(data))
+          {
+            command=data;
+            if(isShortPacket(command))
+              state=LISTENING_FOR_A_CHECKSUM;
+            else
+              state=PARAMETER1;            
+          }
+          else
+          {
+            error("not a valid command");
+            state=WAITING;
+          } 
+          break;
+     
+       case(PARAMETER1):
+         parameter1=data;
+         state=PARAMETER2;
+         break;
+     
+       case(PARAMETER2):
+         parameter2=data;
+         parameter=256*(int)parameter1+(int)parameter2;
+         state=LISTENING_FOR_A_CHECKSUM;
+         break;
+         
+       case(LISTENING_FOR_A_CHECKSUM):
+          checksum=data;
+          if(checkChecksum())
+          {
+            state=LISTENING_FOR_THE_END;
+          }
+          else
+          {
+            error("invalid checksum");
+            state=WAITING;          
+          }
+          break;
+          
+        case(LISTENING_FOR_THE_END):
+          if(data==MSG_END) 
+          {
+            executeCommand();
+            state=WAITING;
+          }
+          else
+          {
+            error("not a message end byte");
+            state=WAITING;
+          }
+          break;
+      
+        default:
         break;
-     case(PARAMETER1):
-       parameter1=data;
-       state=PARAMETER2;
-       break;
-     case(PARAMETER2):
-       parameter2=data;
-       parameter=256*(int)parameter1+(int)parameter2;
-       state=LISTENING_FOR_A_CHECKSUM;
-       break;
-     case(LISTENING_FOR_A_CHECKSUM):
-        checksum=data;
-        if(checkChecksum())
-        {
-          state=LISTENING_FOR_THE_END;
-        }
-        else
-        {
-          error("invalid checksum");
-          state=WAITING;          
-        }
-        break;
-      case(LISTENING_FOR_THE_END):
-        if(data==MSG_END) 
-        {
-          executeCommand();
-          state=WAITING;
-        }
-        else
-        {
-          error("not a message end byte");
-          state=WAITING;
-        }
-        break;
-      default:
-      break;
    }
  }
 }
