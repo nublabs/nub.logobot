@@ -60,7 +60,11 @@ byte state, command, parameter1,parameter2,checksum;
   int leftMotorSpeed, rightMotorSpeed;
   
   // hrmm. how max can it get??
-  int maxSpeed=100;
+  // these are the maximum speeds and average speeds for the drive signal. 
+  int maxSpeed = 100;
+  int avgSpeed = maxSpeed*0.45;
+  
+  
   float translation_p, translation_d;
   float rotation_p, rotation_d;
   
@@ -94,9 +98,9 @@ void setup()
 {
 
   // PD control loop gains (constants)
-    translation_p= 0.2;
+    translation_p= 0.3;
     translation_d= 0;
-    rotation_p   = 0.8;
+    rotation_p   = 0.3;
     rotation_d   = 0;
   
   // discretized control loop arithmetic 
@@ -117,7 +121,7 @@ void setup()
     Serial.begin(19200);
     
     dumb_count = 0;
-    dumb_count_threshold = 20;
+    dumb_count_threshold = 100;
 
 
 //  changeChannel();
@@ -143,15 +147,40 @@ void loop(){
   //translation PD loop
   translation_error=translation_target-translation;
   translation_error_derivative=translation_error-old_translation_error;
-  leftMotorSpeed=(int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
-  rightMotorSpeed=(int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
+  
+   if (translation_error < 200)
+    {
+      leftMotorSpeed  = (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
+      rightMotorSpeed = (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
+  
+      //rotation PD loop
+      rotation_p = 1;
+      rotation_d = 0.0;
+      
+      rotation_error=rotation_target-rotation;
+      rotation_error_derivative=rotation_error-old_rotation_error;
+      leftMotorSpeed+=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);
+      rightMotorSpeed-=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);  
+    }
+   else
+     {
+  
+       leftMotorSpeed  = avgSpeed;
+       rightMotorSpeed = avgSpeed;
+       
+       
+         //rotation PD loop
+       rotation_p = 0.4;
+       rotation_d = 0;
+       
+       rotation_error=rotation_target-rotation;
+       rotation_error_derivative=rotation_error-old_rotation_error;
+       leftMotorSpeed+=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);
+       rightMotorSpeed-=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);
+    
+     }
+     
   old_translation_error=translation_error;
-
-  //rotation PD loop
-  rotation_error=rotation_target-rotation;
-  rotation_error_derivative=rotation_error-old_rotation_error;
-  leftMotorSpeed+=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);
-  rightMotorSpeed-=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);
   old_rotation_error=rotation_error;
 
   //  motorSpeed=map(abs(abs(error)-margin), 0,abs(target-translation),0,maxSpeed);  //proportional control;
@@ -163,16 +192,21 @@ void loop(){
     dumb_count = 0;
   }
 
-/*
 
-  if(translation<target-margin)
-    forwards(motorSpeed,motorSpeed);
-  else if(translation>target+margin)
-    backwards(motorSpeed,motorSpeed);
-  else
-    stop();
-*/
-  move(leftMotorSpeed,rightMotorSpeed);   //PD control;
+  // this code has been commented out. it should be removed or properly commented.
+    /*
+
+      if(translation<target-margin)
+        forwards(motorSpeed,motorSpeed);
+      else if(translation>target+margin)
+        backwards(motorSpeed,motorSpeed);
+      else
+        stop();
+    */
+  
+  
+  // signals sent to the motor
+    move(leftMotorSpeed,rightMotorSpeed);   //PD control;
   
   
   //here I'm checking to see if we're getting any packets, and interpreting them as we go
@@ -246,47 +280,48 @@ void loop(){
  }
 }
 
-//right now, error() just prints out the message it's passed.  In the future, it could do some more sophisticated error handling.  
-//just think of it as a useful abstraction for now.
-void error(char* message)
-{
-  Serial.println(message);
-}
 
-//this checks against all the valid commands to make sure we've got a valid command.  returns true if the command is valid.
-boolean isValidCommand(byte a)
-{
-  return((a==FORWARD)||(a==BACKWARD)||(a==LEFT)||(a==RIGHT)||(a==STOP)||(a==GET_X)||(a==GET_Y)||(a==GET_BATT)||(a==GET_STATUS));
-}
+    //right now, error() just prints out the message it's passed.  In the future, it could do some more sophisticated error handling.  
+    //just think of it as a useful abstraction for now.
+      void error(char* message)
+        {
+          Serial.println(message);
+        }
 
-//some packets (generally the GET_* and STOP) packets don't have a parameter.  This checks the command and returns true if it's a 
-//command without a parameter
-boolean isShortPacket(byte a)
-{
-  return((a==GET_STATUS)||(a==GET_X)||(a==GET_Y)||(a==GET_BATT)||(a==STOP));
-}
+    //this checks against all the valid commands to make sure we've got a valid command.  returns true if the command is valid.
+      boolean isValidCommand(byte a)
+        {
+          return((a==FORWARD)||(a==BACKWARD)||(a==LEFT)||(a==RIGHT)||(a==STOP)||(a==GET_X)||(a==GET_Y)||(a==GET_BATT)||(a==GET_STATUS));
+        }
 
-//returns true if the received packet's checksum matches up with the one calculated locally
-boolean checkChecksum()
-{
-  if(isShortPacket(command))
-    return(checksum==command);
-  else
-    return(checksum==(command+parameter1+parameter2));
-}
+    //some packets (generally the GET_* and STOP) packets don't have a parameter.  This checks the command and returns true if it's a 
+    //command without a parameter
+      boolean isShortPacket(byte a)
+        {
+          return((a==GET_STATUS)||(a==GET_X)||(a==GET_Y)||(a==GET_BATT)||(a==STOP));
+        }
 
-//once we get a valid message, we go to this function to figure out what we should do
-void executeCommand()
-{
-  //this might give me guff later on, if I want to ask a status while it's moving.  just keep it in mind
-  translation_target=0;
-  rotation_target=0;
-  translation=0;
-  rotation=0;
+    //returns true if the received packet's checksum matches up with the one calculated locally
+      boolean checkChecksum()
+        {
+          if(isShortPacket(command))
+            return(checksum==command);
+          else
+            return(checksum==(command+parameter1+parameter2));
+        }
+
+    //once we get a valid message, we go to this function to figure out what we should do
+      void executeCommand()
+        {
+          //this might give me guff later on, if I want to ask a status while it's moving.  just keep it in mind
+            translation_target=0;
+            rotation_target=0;
+            translation=0;
+            rotation=0;
   
-  switch(command){
-    case(FORWARD):
-      translation_target=parameter;
+          switch(command){
+              case(FORWARD):
+              translation_target=parameter;
       rotation_target=0;
       translation=translation_error;
       rotation=rotation_error;
@@ -352,21 +387,28 @@ void backwards(int a, int b)
   digitalWrite(3,HIGH);
   digitalWrite(4,HIGH);
 }
+
+
+// 
 void move(int a, int b)
 {
   
-  if(abs(a)<20)
-    a=0;
-  if(abs(b)<20)
-    b=0;
-  if(a>maxSpeed)
-    a=maxSpeed;
-  if(a<(-1*maxSpeed))
-    a=-1*maxSpeed;
-  if(b>maxSpeed)
-    b=maxSpeed;
-  if(b<(-1*maxSpeed))
-    b=-1*maxSpeed;
+  
+  // this switchboard sets maximum motor limits, essentially as a safety net for the motors.
+  // whenver it is invoked, the PD controller is not being implemented anything approaching ideally
+  // the minimum value that sets motor speeds to 0 is ... of what worth?
+  if(abs(a) < 10)
+    a = 0;
+  if(abs(b) < 10)
+    b = 0;
+  if(a > maxSpeed)
+    a = maxSpeed;
+  if(a < (-1*maxSpeed))
+    a = -1*maxSpeed;
+  if(b > maxSpeed)
+    b = maxSpeed;
+  if(b < (-1*maxSpeed))
+    b = -1*maxSpeed;
 
   if(a>0)
   {
@@ -401,6 +443,8 @@ void move(int a, int b)
   }
 
 }
+
+
 void stop()
 {
   analogWrite(5,0);
