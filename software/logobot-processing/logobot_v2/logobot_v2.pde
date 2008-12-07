@@ -6,8 +6,8 @@ byte linear_parameter2=0;
 
 // 33 clicks is one degree-ish.
 // rotary contant = p1 * 256 + p2 
-byte rotary_parameter1=0;
-byte rotary_parameter2=33;
+byte rotary_parameter1=11;
+byte rotary_parameter2=0;
 boolean pen = true;
 int del=0;
 

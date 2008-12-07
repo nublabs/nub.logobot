@@ -1,4 +1,4 @@
-// this program does something, but noone knows what it does nor what it's supposed to do because it's not commented/documented yet. 
+  // this program does something, but noone knows what it does nor what it's supposed to do because it's not commented/documented yet. 
 
 
 
@@ -55,6 +55,13 @@ byte state, command, parameter1,parameter2,checksum;
   int translation_error, old_translation_error, translation_error_derivative;
   int rotation_error, old_rotation_error, rotation_error_derivative;
 
+  //state machine that lets us keep track of what we command the robot to do 
+  int translate= 1;
+  int rotate   = 2;
+  int stopped     = 3;
+  int mode = translate;
+
+
   int translation_target=0;
   int rotation_target=0;
   int leftMotorSpeed, rightMotorSpeed;
@@ -63,6 +70,7 @@ byte state, command, parameter1,parameter2,checksum;
   // these are the maximum speeds and average speeds for the drive signal. 
   int maxSpeed = 100;
   int avgSpeed = maxSpeed*0.45;
+  int avgRotationSpeed = maxSpeed*0.45;
   
   
   float translation_p, translation_d;
@@ -147,39 +155,81 @@ void loop(){
   //translation PD loop
   translation_error=translation_target-translation;
   translation_error_derivative=translation_error-old_translation_error;
+  rotation_error=rotation_target-rotation;
+  rotation_error_derivative=rotation_error-old_rotation_error;
   
-   if (translation_error < 200)
-    {
-      leftMotorSpeed  = (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
-      rightMotorSpeed = (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
+   if (mode == translate)
+   {
+     if (abs(translation_error) < 200)
+      {
+        leftMotorSpeed  = (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
+        rightMotorSpeed = (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
   
-      //rotation PD loop
-      rotation_p = 1;
-      rotation_d = 0.0;
+        //rotation PD loop
+        rotation_p = 1;
+        rotation_d = 0.0;
       
-      rotation_error=rotation_target-rotation;
-      rotation_error_derivative=rotation_error-old_rotation_error;
-      leftMotorSpeed+=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);
-      rightMotorSpeed-=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);  
-    }
-   else
-     {
-  
-       leftMotorSpeed  = avgSpeed;
-       rightMotorSpeed = avgSpeed;
-       
-       
+        leftMotorSpeed+=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);
+        rightMotorSpeed-=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);  
+      }
+     else
+      {
+        // sets a cruising speed (forward or backwards) for the robot in translate mode.
+        if ( translation_error > 0){ 
+            leftMotorSpeed  = avgSpeed;
+            rightMotorSpeed = avgSpeed;
+        }
+        if ( translation_error < 0){
+            leftMotorSpeed  = -avgSpeed;
+            rightMotorSpeed = -avgSpeed;
+        }
          //rotation PD loop
-       rotation_p = 0.4;
-       rotation_d = 0;
+         rotation_p = 0.4;
+         rotation_d = 0;
        
-       rotation_error=rotation_target-rotation;
-       rotation_error_derivative=rotation_error-old_rotation_error;
-       leftMotorSpeed+=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);
-       rightMotorSpeed-=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);
-    
+         leftMotorSpeed+=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);
+         rightMotorSpeed-=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);
      }
-     
+   }
+   
+   // if the mode is rotate, the above controller paradigm is inverted, giving rotation the dominant role.
+   else if (mode == rotate)
+   { 
+     if ( abs(rotation_error) < 100) // what should the rotation threshold be!?? 30something clicks per degree...
+      {
+        
+        //rotation PD loop
+        rotation_p = 1;
+        rotation_d = 0.0;
+        
+        leftMotorSpeed  = (int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);
+        rightMotorSpeed = -((int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative));
+      
+        rotation_error=rotation_target-rotation;
+        rotation_error_derivative=rotation_error-old_rotation_error;
+        leftMotorSpeed  += (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
+        rightMotorSpeed += (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative); 
+      }
+     else
+      {
+        if (rotation_error > 0){ 
+            leftMotorSpeed  =  avgRotationSpeed;
+            rightMotorSpeed = -avgRotationSpeed;
+        }
+        if (rotation_error < 0){
+            leftMotorSpeed  = -avgRotationSpeed;
+            rightMotorSpeed =  avgRotationSpeed;
+         
+         //rotation PD loop
+         translation_p = 0.4;
+         translation_d = 0;
+       
+         leftMotorSpeed  += (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
+         rightMotorSpeed += (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
+       }
+     }
+   }
+      
   old_translation_error=translation_error;
   old_rotation_error=rotation_error;
 
@@ -191,7 +241,7 @@ void loop(){
   dumb_count = dumb_count + 1;
   if (dumb_count == dumb_count_threshold)
   {  
-    printStatus();  //uncomment this line to send debug statements
+    //printStatus();  //uncomment this line to send debug statements
     dumb_count = 0;
   }
 
@@ -324,37 +374,44 @@ void loop(){
   
           switch(command){
               case(FORWARD):
-              translation_target=parameter;
-      rotation_target=0;
-      translation=translation_error;
-      rotation=rotation_error;
-    break;
-    case(BACKWARD):
-      translation_target=-1*parameter;
-      rotation_target=0;
-      translation=translation_error;
-      rotation=rotation_error;
-    break;
-    case(LEFT):
-      translation_target=0;
-      rotation_target=parameter;
-      translation=translation_error;
-      rotation=rotation_error;
-    break;
-    case(RIGHT):
-      translation_target=0;
-      rotation_target=-1*parameter;
-      translation=translation_error;
-      rotation=rotation_error;
-    break;
-    case(STOP):
-      translation_target=0;
-      rotation_target=0;
-      translation=0;
-      rotation=0;
-    break;
-    default:
-    break;
+                translation_target=parameter;
+                rotation_target=0;
+                translation=translation_error;
+                rotation=rotation_error;
+                mode=translate;
+                break;
+    
+              case(BACKWARD):
+                translation_target=-1*parameter;
+                rotation_target=0;
+                translation=translation_error;
+                rotation=rotation_error;
+                mode=translate;
+                break;
+    
+              case(LEFT):
+                translation_target=0;
+                rotation_target=parameter;
+                translation=translation_error;
+                rotation=rotation_error;
+                mode=rotate;
+                break;
+              case(RIGHT):
+                translation_target=0;
+                rotation_target=-1*parameter;
+                translation=translation_error;
+                rotation=rotation_error;
+                mode=rotate;
+                break;
+              case(STOP):
+                translation_target=0;
+                rotation_target=0;
+                translation=0;
+                rotation=0;
+                mode=stopped;
+                break;
+              default:
+                break;
   }
 }
 
