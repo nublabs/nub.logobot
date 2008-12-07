@@ -1,4 +1,4 @@
-// this program does something, but noone knows what it does nor what it's supposed to do because it's not commented/documented yet. 
+  // this program does something, but noone knows what it does nor what it's supposed to do because it's not commented/documented yet. 
 
 
 
@@ -37,6 +37,13 @@ ADNS_SCK         PB2    pin10
   int translation;
   int translation_error, old_translation_error, translation_error_derivative;
   int rotation_error, old_rotation_error, rotation_error_derivative;
+
+  //state machine that lets us keep track of what we command the robot to do 
+  int translate=1;
+  int rotate=2;
+  int stop=3;
+  int mode=stop;
+
 
   int translation_target=0;
   int rotation_target=0;
@@ -307,34 +314,41 @@ void loop(){
   
           switch(command){
               case(FORWARD):
-              translation_target=parameter;
-      rotation_target=0;
-      translation=translation_error;
-      rotation=rotation_error;
-    break;
-    case(BACKWARD):
-      translation_target=-1*parameter;
-      rotation_target=0;
-      translation=translation_error;
-      rotation=rotation_error;
-    break;
-    case(LEFT):
-      translation_target=0;
+                translation_target=parameter;
+                rotation_target=0;
+                translation=translation_error;
+                rotation=rotation_error;
+                mode=translate;
+                break;
+    
+              case(BACKWARD):
+                translation_target=-1*parameter;
+                rotation_target=0;
+                translation=translation_error;
+                rotation=rotation_error;
+                mode=translate;
+                break;
+    
+              case(LEFT):
+                translation_target=0;
       rotation_target=parameter;
       translation=translation_error;
       rotation=rotation_error;
+      mode=rotate;
     break;
     case(RIGHT):
       translation_target=0;
       rotation_target=-1*parameter;
       translation=translation_error;
       rotation=rotation_error;
+      mode=rotate;
     break;
     case(STOP):
       translation_target=0;
       rotation_target=0;
       translation=0;
       rotation=0;
+      mode=stop;
     break;
     default:
     break;

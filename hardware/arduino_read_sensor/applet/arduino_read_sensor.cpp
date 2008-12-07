@@ -1,4 +1,3 @@
-#include "WProgram.h"
 // this program does something, but noone knows what it does nor what it's supposed to do because it's not commented/documented yet. 
 
 
@@ -30,7 +29,8 @@ ADNS_SCK         PB2    pin10
 
 
 
-  void setup();
+  #include "WProgram.h"
+void setup();
 void changeChannel();
 void loop();
 void error(char* message);
@@ -185,6 +185,9 @@ void loop(){
 
   //  motorSpeed=map(abs(abs(error)-margin), 0,abs(target-translation),0,maxSpeed);  //proportional control;
   
+ 
+ // this is a debug tool.
+  // the if statement duty-cycles the calling of the debug tool 
   dumb_count = dumb_count + 1;
   if (dumb_count == dumb_count_threshold)
   {  

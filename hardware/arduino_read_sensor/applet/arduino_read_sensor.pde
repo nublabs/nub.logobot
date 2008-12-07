@@ -168,6 +168,9 @@ void loop(){
 
   //  motorSpeed=map(abs(abs(error)-margin), 0,abs(target-translation),0,maxSpeed);  //proportional control;
   
+ 
+ // this is a debug tool.
+  // the if statement duty-cycles the calling of the debug tool 
   dumb_count = dumb_count + 1;
   if (dumb_count == dumb_count_threshold)
   {  
