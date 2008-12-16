@@ -23,9 +23,10 @@ ADNS_SCK         PB2    pin10
 */
 
 // the following .h files contain libraries that might be useful or something
-  #include "adns_2620.h"
-  #include "comm.h"
-  #include "dynamics.h"
+  #include "adns_2620.h"     //contains definitions that let the arduino talk to the mouse sensor
+  #include "comm.h"          //contains the definitions for the logobot<-> computer communications protocol
+  #include "dynamics.h"      //describes the dynamics of the 'bot's motions, specifically the allowable error margins for its motion
+  #include "state_machine.h" //variables and defines that keep track of if the 'bot has completed its commanded motion
   #include <avr/wdt.h>  //watchdog timer .h file
 
 
@@ -38,12 +39,7 @@ ADNS_SCK         PB2    pin10
   int translation;
   int translation_error, old_translation_error, translation_error_derivative;
   int rotation_error, old_rotation_error, rotation_error_derivative;
-
-  //state machine that lets us keep track of what we command the robot to do 
-  int translate= 1;
-  int rotate   = 2;
-  int stopped     = 3;
-  int mode = translate;
+   
 
   int servo=1500;  //servo pulse width in microseconds
 
@@ -70,6 +66,8 @@ ADNS_SCK         PB2    pin10
                             //for 20 pulses or so.  Then you can turn it off to save power
 
   int numPulses=25;
+  
+  int stable_counter=0;
 
   #define del 1
   #define SDIO 1
@@ -146,7 +144,7 @@ void loop(){
   rotation_error=rotation_target-rotation;
   rotation_error_derivative=rotation_error-old_rotation_error;
   
-   if (mode == translate)
+   if (mode == TRANSLATE)
    {
      if (abs(translation_error) < 200)
       {
@@ -181,7 +179,7 @@ void loop(){
    }
    
    // if the mode is rotate, the above controller paradigm is inverted, giving rotation the dominant role.
-   else if (mode == rotate)
+   else if (mode == ROTATE)
    { 
      if ( abs(rotation_error) < 100) // what should the rotation threshold be!?? 30something clicks per degree...
       {
@@ -217,6 +215,11 @@ void loop(){
        }
      }
    }
+   else if (mode==STOPPED)
+   {
+     leftMotorSpeed=0;
+     rightMotorSpeed=0;
+   }
       
   old_translation_error=translation_error;
   old_rotation_error=rotation_error;
@@ -233,18 +236,24 @@ void loop(){
     dumb_count = 0;
   }
 
+  //check to see if we're within the error margins on rotation and translation
+  if((mode==TRANSLATE)||(mode==ROTATE))  //don't run the counter if we're not moving--this avoids a potential overflow bug in stable_counter
+  {
+    if((abs(translation_error)<translation_margin)&&(abs(rotation_error)<rotation_margin))
+      stable_counter++;
+    else
+      stable_counter=0;
+  }
+    
+  if(stable_counter>=STABLE_COUNT)  //we've been within the error margins for long enough
+  {
+    Serial.print(ACTION_COMPLETE);  //tell the computer that we're done
+    mode=STOPPED;                   //update the state machine (this will kill the motors next time around the loop)
+                                    //if this doesn't kill the motors fast enough (unlikely), I can move this ahead of the motion 
+                                    //control code, and I'll speed it up by one loop
+    
+  }
 
-  // this code has been commented out. it should be removed or properly commented.
-    /*
-
-      if(translation<target-margin)
-        forwards(motorSpeed,motorSpeed);
-      else if(translation>target+margin)
-        backwards(motorSpeed,motorSpeed);
-      else
-        stop();
-    */
-  
   
   // signals sent to the motor
  //   move(leftMotorSpeed,rightMotorSpeed);   //PD control;
@@ -262,6 +271,7 @@ void loop(){
       delayMicroseconds(2000-servo);
       delay(50);
     }
+    Serial.print(ACTION_COMPLETE);   //tell the computer that we're done
     moveServo=false;
   }
   
@@ -381,7 +391,7 @@ void loop(){
                 rotation_target=0;
                 translation=translation_error;
                 rotation=rotation_error;
-                mode=translate;
+                mode=TRANSLATE;
                 break;
     
               case(BACKWARD):
@@ -389,7 +399,7 @@ void loop(){
                 rotation_target=0;
                 translation=translation_error;
                 rotation=rotation_error;
-                mode=translate;
+                mode=TRANSLATE;
                 break;
     
               case(LEFT):
@@ -397,29 +407,31 @@ void loop(){
                 rotation_target=parameter;
                 translation=translation_error;
                 rotation=rotation_error;
-                mode=rotate;
+                mode=ROTATE;
                 break;
               case(RIGHT):
                 translation_target=0;
                 rotation_target=-1*parameter;
                 translation=translation_error;
                 rotation=rotation_error;
-                mode=rotate;
+                mode=ROTATE;
                 break;
               case(STOP):
                 translation_target=0;
                 rotation_target=0;
                 translation=0;
                 rotation=0;
-                mode=stopped;
+                mode=STOPPED;
                 break;
               case(PEN_UP):
                 servo=1800;
                 moveServo=true;
+                mode=STOPPED;
               break;
               case(PEN_DOWN):
                 servo=2600;
                 moveServo=true;
+                mode=STOPPED;
               break;
               default:
                 break;
