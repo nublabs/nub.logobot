@@ -1,3 +1,4 @@
+
   // this program does something, but noone knows what it does nor what it's supposed to do because it's not commented/documented yet. 
 
 
@@ -44,6 +45,7 @@ ADNS_SCK         PB2    pin10
   int stopped     = 3;
   int mode = translate;
 
+  int servo=1500;  //servo pulse width in microseconds
 
   int translation_target=0;
   int rotation_target=0;
@@ -51,7 +53,7 @@ ADNS_SCK         PB2    pin10
   
   // hrmm. how max can it get??
   // these are the maximum speeds and average speeds for the drive signal. 
-  int maxSpeed = 100;
+  int maxSpeed = 220;
   int avgSpeed = maxSpeed*0.45;
   int avgRotationSpeed = maxSpeed*0.45;
   
@@ -64,7 +66,10 @@ ADNS_SCK         PB2    pin10
   int dumb_count;
   int dumb_count_threshold;
 
+  boolean moveServo=false; //keeps track of when we're commanding a servo move.  Usually you only need to send it a move signal
+                            //for 20 pulses or so.  Then you can turn it off to save power
 
+  int numPulses=25;
 
   #define del 1
   #define SDIO 1
@@ -182,7 +187,7 @@ void loop(){
       {
         
         //rotation PD loop
-        rotation_p = 1;
+        rotation_p = 0.3;
         rotation_d = 0.0;
         
         leftMotorSpeed  = (int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);
@@ -204,8 +209,8 @@ void loop(){
             rightMotorSpeed =  avgRotationSpeed;
          
          //rotation PD loop
-         translation_p = 0.4;
-         translation_d = 0;
+         translation_p = 1;
+         translation_d = 0.5;
        
          leftMotorSpeed  += (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
          rightMotorSpeed += (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
@@ -242,8 +247,23 @@ void loop(){
   
   
   // signals sent to the motor
-    move(leftMotorSpeed,rightMotorSpeed);   //PD control;
+ //   move(leftMotorSpeed,rightMotorSpeed);   //PD control;
+    move(rightMotorSpeed, leftMotorSpeed);   //PD control;
   
+  
+  if(moveServo)
+  {
+    char count=0;
+    for(count=0;count<numPulses;count++)
+    {
+      digitalWrite(2,HIGH);
+      delayMicroseconds(servo);
+      digitalWrite(2,LOW);
+      delayMicroseconds(2000-servo);
+      delay(50);
+    }
+    moveServo=false;
+  }
   
   //here I'm checking to see if we're getting any packets, and interpreting them as we go
    if(Serial.available()>0)
@@ -327,14 +347,14 @@ void loop(){
     //this checks against all the valid commands to make sure we've got a valid command.  returns true if the command is valid.
       boolean isValidCommand(byte a)
         {
-          return((a==FORWARD)||(a==BACKWARD)||(a==LEFT)||(a==RIGHT)||(a==STOP)||(a==GET_X)||(a==GET_Y)||(a==GET_BATT)||(a==GET_STATUS));
+          return((a==FORWARD)||(a==BACKWARD)||(a==LEFT)||(a==RIGHT)||(a==STOP)||(a==GET_X)||(a==GET_Y)||(a==GET_BATT)||(a==GET_STATUS)||(a==PEN_UP)||(a==PEN_DOWN));
         }
 
     //some packets (generally the GET_* and STOP) packets don't have a parameter.  This checks the command and returns true if it's a 
     //command without a parameter
       boolean isShortPacket(byte a)
         {
-          return((a==GET_STATUS)||(a==GET_X)||(a==GET_Y)||(a==GET_BATT)||(a==STOP));
+          return((a==GET_STATUS)||(a==GET_X)||(a==GET_Y)||(a==GET_BATT)||(a==STOP)||(a==PEN_UP)||(a==PEN_DOWN));
         }
 
     //returns true if the received packet's checksum matches up with the one calculated locally
@@ -393,6 +413,14 @@ void loop(){
                 rotation=0;
                 mode=stopped;
                 break;
+              case(PEN_UP):
+                servo=1800;
+                moveServo=true;
+              break;
+              case(PEN_DOWN):
+                servo=2600;
+                moveServo=true;
+              break;
               default:
                 break;
   }

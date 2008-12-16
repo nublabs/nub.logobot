@@ -1,13 +1,13 @@
 //nublabs
 import processing.serial.*;
 
-byte linear_parameter1=10;
-byte linear_parameter2=0;
+int linear_parameter1=2;
+int linear_parameter2=20;
 
 // 33 clicks is one degree-ish.
 // rotary contant = p1 * 256 + p2 
-byte rotary_parameter1=11;
-byte rotary_parameter2=0;
+int rotary_parameter1=1;
+int rotary_parameter2=0;
 boolean pen = true;
 int del=0;
 
@@ -44,7 +44,7 @@ void setup()
 {
   size(200,200);
     println(Serial.list());
-  myPort = new Serial(this, Serial.list()[2], 19200);
+  myPort = new Serial(this, Serial.list()[0], 19200);
   
 }
 
@@ -97,7 +97,7 @@ void pen_down()
   myPort.write(MSG_END); 
 }
 
-void send_command(byte command, byte highByte, byte lowByte)
+void send_command(byte command, int highByte, int lowByte)
 {
   if(command!=STOP)
   {
@@ -171,7 +171,7 @@ void keyPressed()
     if(key=='d')
       pen_down();
     if(key==' ')
-      send_command(STOP,(byte)0,(byte)0);
+      send_command(STOP,(int)0,(int)0);
 //    if(key==' ')
  //     send_stop();
 }

@@ -1,4 +1,3 @@
-
   // this program does something, but noone knows what it does nor what it's supposed to do because it's not commented/documented yet. 
 
 
@@ -47,13 +46,15 @@ ADNS_SCK         PB2    pin10
 
   int servo=1500;  //servo pulse width in microseconds
 
+  int a=0;
+
   int translation_target=0;
   int rotation_target=0;
   int leftMotorSpeed, rightMotorSpeed;
   
   // hrmm. how max can it get??
   // these are the maximum speeds and average speeds for the drive signal. 
-  int maxSpeed = 220;
+  int maxSpeed = 100;
   int avgSpeed = maxSpeed*0.45;
   int avgRotationSpeed = maxSpeed*0.45;
   
@@ -140,86 +141,7 @@ void loop(){
   // update reads new values of the X and Y translation of the mouse sensor, leading to updates of the various "___error" values
   update();
   
-  //translation PD loop
-  translation_error=translation_target-translation;
-  translation_error_derivative=translation_error-old_translation_error;
-  rotation_error=rotation_target-rotation;
-  rotation_error_derivative=rotation_error-old_rotation_error;
-  
-   if (mode == translate)
-   {
-     if (abs(translation_error) < 200)
-      {
-        leftMotorSpeed  = (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
-        rightMotorSpeed = (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
-  
-        //rotation PD loop
-        rotation_p = 1;
-        rotation_d = 0.0;
-      
-        leftMotorSpeed+=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);
-        rightMotorSpeed-=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);  
-      }
-     else
-      {
-        // sets a cruising speed (forward or backwards) for the robot in translate mode.
-        if ( translation_error > 0){ 
-            leftMotorSpeed  = avgSpeed;
-            rightMotorSpeed = avgSpeed;
-        }
-        if ( translation_error < 0){
-            leftMotorSpeed  = -avgSpeed;
-            rightMotorSpeed = -avgSpeed;
-        }
-         //rotation PD loop
-         rotation_p = 0.4;
-         rotation_d = 0;
-       
-         leftMotorSpeed+=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);
-         rightMotorSpeed-=(int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);
-     }
-   }
-   
-   // if the mode is rotate, the above controller paradigm is inverted, giving rotation the dominant role.
-   else if (mode == rotate)
-   { 
-     if ( abs(rotation_error) < 100) // what should the rotation threshold be!?? 30something clicks per degree...
-      {
-        
-        //rotation PD loop
-        rotation_p = 0.3;
-        rotation_d = 0.0;
-        
-        leftMotorSpeed  = (int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative);
-        rightMotorSpeed = -((int)(rotation_p*(float)rotation_error+rotation_d*(float)rotation_error_derivative));
-      
-        rotation_error=rotation_target-rotation;
-        rotation_error_derivative=rotation_error-old_rotation_error;
-        leftMotorSpeed  += (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
-        rightMotorSpeed += (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative); 
-      }
-     else
-      {
-        if (rotation_error > 0){ 
-            leftMotorSpeed  =  avgRotationSpeed;
-            rightMotorSpeed = -avgRotationSpeed;
-        }
-        if (rotation_error < 0){
-            leftMotorSpeed  = -avgRotationSpeed;
-            rightMotorSpeed =  avgRotationSpeed;
-         
-         //rotation PD loop
-         translation_p = 1;
-         translation_d = 0.5;
-       
-         leftMotorSpeed  += (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
-         rightMotorSpeed += (int)(translation_p*(float)translation_error+translation_d*(float)translation_error_derivative);
-       }
-     }
-   }
-      
-  old_translation_error=translation_error;
-  old_rotation_error=rotation_error;
+
 
   //  motorSpeed=map(abs(abs(error)-margin), 0,abs(target-translation),0,maxSpeed);  //proportional control;
   
@@ -229,111 +151,29 @@ void loop(){
   dumb_count = dumb_count + 1;
   if (dumb_count == dumb_count_threshold)
   {  
-    //printStatus();  //uncomment this line to send debug statements
+    printStatus();  //uncomment this line to send debug statements
     dumb_count = 0;
   }
 
 
-  // this code has been commented out. it should be removed or properly commented.
-    /*
-
-      if(translation<target-margin)
-        forwards(motorSpeed,motorSpeed);
-      else if(translation>target+margin)
-        backwards(motorSpeed,motorSpeed);
-      else
-        stop();
-    */
-  
-  
   // signals sent to the motor
- //   move(leftMotorSpeed,rightMotorSpeed);   //PD control;
-    move(rightMotorSpeed, leftMotorSpeed);   //PD control;
-  
-  
-  if(moveServo)
-  {
-    char count=0;
-    for(count=0;count<numPulses;count++)
+    for(a=0;a<4;a++)
     {
-      digitalWrite(2,HIGH);
-      delayMicroseconds(servo);
-      digitalWrite(2,LOW);
-      delayMicroseconds(2000-servo);
-      delay(50);
+    move(100,100);   //PD control;
+    delay(187);
+    move(0,0);
+    delay(2000);
+    move(100,-100);   //PD control;
+    delay(1122);
+    move(0,0);
+    delay(2000);
     }
-    moveServo=false;
-  }
-  
-  //here I'm checking to see if we're getting any packets, and interpreting them as we go
-   if(Serial.available()>0)
-   {
-     byte data=Serial.read();
-     switch(state)
-     {
-       case(WAITING):
-         if(data==MSG_START)
-           state=COMMAND;
-          else
-           error("not a message start byte");
-          break;
-       case(COMMAND):
-          if(isValidCommand(data))
-          {
-            command=data;
-            if(isShortPacket(command))
-              state=LISTENING_FOR_A_CHECKSUM;
-            else
-              state=PARAMETER1;            
-          }
-          else
-          {
-            error("not a valid command");
-            state=WAITING;
-          } 
-          break;
-     
-       case(PARAMETER1):
-         parameter1=data;
-         state=PARAMETER2;
-         break;
-     
-       case(PARAMETER2):
-         parameter2=data;
-         parameter=256*(int)parameter1+(int)parameter2;
-         state=LISTENING_FOR_A_CHECKSUM;
-         break;
-         
-       case(LISTENING_FOR_A_CHECKSUM):
-          checksum=data;
-          if(checkChecksum())
-          {
-            state=LISTENING_FOR_THE_END;
-          }
-          else
-          {
-            error("invalid checksum");
-            state=WAITING;          
-          }
-          break;
-          
-        case(LISTENING_FOR_THE_END):
-          if(data==MSG_END) 
-          {
-            executeCommand();
-            state=WAITING;
-          }
-          else
-          {
-            error("not a message end byte");
-            state=WAITING;
-          }
-          break;
-      
-        default:
-        break;
-   }
- }
+    
+
+    while(1)
+    {
+    }
+    
 }
 
 
