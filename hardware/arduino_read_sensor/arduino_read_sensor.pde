@@ -22,7 +22,6 @@ ADNS_SDIO        PB1    pin9
 ADNS_SCK         PB2    pin10
 */
 
-// the following .h files contain libraries that might be useful or something
   #include "adns_2620.h"     //contains definitions that let the arduino talk to the mouse sensor
   #include "comm.h"          //contains the definitions for the logobot<-> computer communications protocol
   #include "dynamics.h"      //describes the dynamics of the 'bot's motions, specifically the allowable error margins for its motion
@@ -248,6 +247,7 @@ void loop(){
   if(stable_counter>=STABLE_COUNT)  //we've been within the error margins for long enough
   {
     Serial.print(ACTION_COMPLETE);  //tell the computer that we're done
+    stable_counter=0;
     mode=STOPPED;                   //update the state machine (this will kill the motors next time around the loop)
                                     //if this doesn't kill the motors fast enough (unlikely), I can move this ahead of the motion 
                                     //control code, and I'll speed it up by one loop
