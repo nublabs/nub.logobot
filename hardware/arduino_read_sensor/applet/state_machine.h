@@ -10,4 +10,4 @@
 
 
   //number of loops the robot goes through with its errors under a threshhold before it decides it's completed an action
-  #define STABLE_COUNT 20
+  #define STABLE_COUNT 100
