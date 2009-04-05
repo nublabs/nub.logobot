@@ -1,7 +1,9 @@
 #!/usr/bin/python
 """ @package logobot
 
-logobot.py sends commands to a serial port (or a USB port imitating a serial port) for transmission to logobot, wirelessly controlled robot which can draw and move.  This is a Python wrapper around the serial commands that are sent wirelessly using the XBee protocol.
+logobot.py sends commands to a serial port (or a USB port imitating a serial port)
+for transmission to logobot, wirelessly controlled robot which can draw and move.
+This is a Python wrapper around the serial commands that are sent wirelessly using the XBee protocol.
 """
 
 import serial
@@ -23,7 +25,7 @@ lengthScale = 1
 rotationScale = 1 
 
 import os, sys, dircache
-portDirectory = '/dev/'
+portDirectory = 'COM11'
 portsAvailable = dircache.opendir(portDirectory)
 
 """ Set the usb port and baudrate """
@@ -117,12 +119,11 @@ def openConnection(port=usb):
         logging.debug('Port %s already open.', port.port)
     else:
         logging.debug('Port %s not yet open.', port.port)
-        if port != usb:
-            logging.debug('Port %s not open, opening. . .', port.port)
-            ser = serial.Serial(port.port,9600,timeout=0)
-        else:
-            logging.debug('Default port %s used.', port.port)
-
+        #if port != usb:
+        #    logging.debug('Port %s not open, opening. . .', port.port)
+        #    ser = serial.Serial(port.port,9600,timeout=0)
+        #else:
+        #    logging.debug('Default port %s used.', port.port)
         logging.debug('Opening port %s . . .', port.port)
         ser.open()
         ser.flushInput()
@@ -173,7 +174,10 @@ def decode(value):
 
 
 def portWrite(message, port=usb):
-""" portWrite is a wrapper around writing to the serial port that will insure that a port is open before attempting to write to it and log a message while doing so.
+""" portWrite is a wrapper around writing to the
+serial port that will insure that a port is open
+before attempting to write to it and log a message
+while doing so.
 """
     logging.debug('Writing %s on %s', message, port.port)
     openConnection(port)
@@ -182,7 +186,9 @@ def portWrite(message, port=usb):
 
 
 def portRead(port=usb):
-""" portRead is a wrapper around writing to the serial port that will insure that a port is open before attempting to read it and log a message while doing so.
+""" portRead is a wrapper around writing to the serial port that
+will insure that a port is open before attempting to read it and
+log a message while doing so.
 """
     logging.debug('Reading from %s', port.port)
     openConnection(port)
@@ -202,7 +208,8 @@ def msgEnd(port=usb):
 
 
 def say(message, port=usb):    
-""" say encodes the message and sends it over the port, well-formed.  If you want to simply send a bit on the port, use portWrite"""
+""" say encodes the message and sends it over the port, well-formed.
+If you want to simply send a bit on the port, use portWrite"""
     portWrite(encode(message))
     logging.debug('Wrote %s', repr(message))
     return message
@@ -238,7 +245,9 @@ def ask(message, port=usb):
 
 
 def do(command, parameter = '', port=usb):
-""" do will take a command, translate it, pass it on, and make sure it is well-formed.  It is the workhorse of logobot.py, and will send the well-formed message to the USB port, printing whatever response received over the serial port 
+""" do will take a command, translate it, pass it on, and make sure it is well-formed.
+It is the workhorse of logobot.py, and will send the well-formed message to the USB port,
+printing whatever response received over the serial port 
 
 ** TODO ensuring via checksum that the message is transmitted and received. """
 
@@ -277,7 +286,8 @@ def do(command, parameter = '', port=usb):
 def waitUntilReady(timeout=-1):
 """ waitUntilReady
 
-waitUntilReady will pause the script until Logobot is ready to receive commands, so that we do notoverwhelm Logobot with commands while it is still carrying them out """
+waitUntilReady will pause the script until Logobot is ready to receive commands,
+so that we do notoverwhelm Logobot with commands while it is still carrying them out """
     if timeout == -1:
         while ask('GET_STATUS') != 'WAITING':
             time.sleep(0.1) """ Sleep for 0.1 seconds """
