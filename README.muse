@@ -1,7 +1,7 @@
 #title README for project
 #author author (author@nublabs.org)
-#date 100108
-#desc Short description of the project
+#date 040509
+#desc Logobot is a robot that can move and draw wirelessly, controlled via Logo or Scratch
 
 * What is this project?
 
@@ -13,3 +13,10 @@
    - hardware
    - software
    - misc
+
+current workflow (as of 04052009)
+* load Arduino_Read_Sensor onto a Logobot board (hardware) 
+	- arduino boot loader: turn on robot, load code within first 10 or 15 seconds. arduino will show when success.
+* run Processing or Python code to command/communicate with Logobt (software)
+	- Processing - logobot_v2
+	- python - logobotII.py creates logobot class in python. 
