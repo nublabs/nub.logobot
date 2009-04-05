@@ -1,3 +1,4 @@
+# meeeh git sux sumtimez
 #!/usr/bin/python
 """ @package logobot
 
